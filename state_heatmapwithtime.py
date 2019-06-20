@@ -1,9 +1,24 @@
-def getdata_stateheatmapwithtime(df, state):
+def prep_state_data(df, state):
     '''
-    Expects the original dataframe from our zillow_data.csv
+    A specific script, written for pre-processed data read in from zillow_data.csv
+    This function will prepare and return a state-level set of nested lists, where
+    the outer list corresponds to the time steps, and the inner list is the
+    latitude/longitude/weight data that will be plotted by folium's HeatMapWithTime
 
-    State must be a string of the state code
-    Example: "TX" for Texas
+    Expected Inputs:
+    df: pandas dataframe, read in from zillow_data.csv, with whatever necessary
+        pre-processing already completed (drop metadata columns except state, 
+        grab dates to examine, remove of all nulls, normalize/scale prices)
+    state: string of the state code, ie: "TX" for Texas
+
+    Outputs:
+    heat_data: nested lists to be read into a folium HeatMapWithTime
+
+    Note! The pandas dataframe, df, must not have any null values!
+
+    Example:
+    from state_heatmapwithtime import *
+    tx_data = prep_state_data(df, "TX")
     '''
     from uszipcode import SearchEngine
     from sklearn import preprocessing
@@ -62,3 +77,31 @@ def getdata_stateheatmapwithtime(df, state):
             lat_long_weight.append(row_data)
         heat_data.append(lat_long_weight)
     return heat_data
+
+def create_index_heatmapwithtime(df, state):
+    '''
+    A specific script just to return a list to be read into folium's
+    HeatMapWithTime to act as the index
+
+    Expected Inputs:
+    df: pandas dataframe, read in from zillow_data.csv, with whatever necessary
+        pre-processing already completed (drop metadata columns except state, 
+        grab dates to examine, remove of all nulls, normalize/scale prices)
+    state: string of the state code, ie: "TX" for Texas
+
+    Note! The pandas dataframe, df, must not have any null values!
+
+    Example:
+    from state_heatmapwithtime import *
+    tx_index = create_index_heatmapwithtime(df, "TX")
+    '''
+    # Creating the state-level dataframe
+    df_state = df.loc[df["State"] == state]
+
+    # Dropping the state column, now that we no longer need it
+    df_state = df_state.drop(columns="State")
+
+    # Creating a column list
+    column_list = list(df_state.columns)
+
+    return column_list
